@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import React, { useState } from 'react';
 import { OpenStreetMapProvider } from 'leaflet-geosearch';
 import OsmMapInputSearch from './OsmMapInputSearch';
+import { Properties } from './tagUtils';
 
 // setup
 const provider = new OpenStreetMapProvider();
@@ -13,7 +14,7 @@ const defaultPosition = [45.460672, -73.57277];
 
 // search
 const queryOsm = async (value, { lat, lng }, zoom, locationBias) => {
-  const response = await fetch(`http://localhost:2322/api?q=${value}&lon=${lng}&lat=${lat}${zoom > 0 ? `&zoom=${zoom}` : ''}&location_bias_scale=${locationBias}`, {
+  const response = await fetch(`http://localhost:2322/api?q=${value}&fuzziness=1&lon=${lng}&lat=${lat}${zoom > 0 ? `&zoom=${zoom}` : ''}&location_bias_scale=${locationBias}`, {
       mode: 'cors',
       headers: {
         'Accept': 'application/json',
@@ -26,18 +27,6 @@ const queryOsm = async (value, { lat, lng }, zoom, locationBias) => {
       return json.features;
   }
   return [];
-}
-
-function getPopupText(properties) {
-  let text = '';
-  let altText = '';
-  if (properties.name) {
-    text += `<b>${properties.name}</b>`;
-  }
-  if (properties.housenumber && properties.street) {
-    altText += `${properties.housenumber} ${properties.street}${properties.city ? `, ${properties.city}` : ''}${properties.country ? `, ${properties.country}` : ''}`
-  }
-  return text !== '' && altText !== '' ? `${text}<br/>${altText}` : text !== '' ? text : altText;
 }
 
 function OsmMapFind() {
@@ -103,7 +92,7 @@ function OsmMapFind() {
               position={[result.geometry.coordinates[1], result.geometry.coordinates[0]]}
             >
               <Popup>
-                {getPopupText(result.properties)}
+                <Properties properties={result.properties}/>
               </Popup>
             </Marker>
           ))}

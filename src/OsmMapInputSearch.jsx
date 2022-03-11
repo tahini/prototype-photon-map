@@ -1,8 +1,13 @@
 import React from 'react';
+import { Properties } from './tagUtils';
 
 
 function OsmMapInputSearch({setValue, useZoom, setUseZoom, locationBiasScale, setLocationBiasScale, hints, setHintValue}) {
-    const hintStr = hints.map(hint => (<p>{`${hint.properties.name}`}</p>)) || '';
+    const hintStr = hints.map(hint => (
+        <div>
+            <Properties properties={hint.properties}/>
+        </div>)
+    );
     return (
         <div >
             {hintStr}
