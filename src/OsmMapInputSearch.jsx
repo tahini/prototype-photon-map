@@ -1,37 +1,40 @@
 import React from 'react';
 
 
-// search
-const queryOsm = async (value, center) => {
-    const response = await fetch(`http://localhost:2322/api?q=${value}&lon=${center[0]}&lat=${center[1]}`, {
-        mode: 'cors',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-    });
-    const json = await response.json();
-    if (json.type === 'FeatureCollection') {
-        return json.features;
-    }
-    return [];
-}
-
-function OsmMapInputSearch({setResults, lat, lon}) {
-    const updateResults = async (value) => {
-        const results = await queryOsm(value, [lon, lat]);
-        console.log(results);
-        setResults(results);
-    }
+function OsmMapInputSearch({setValue, useZoom, setUseZoom, locationBiasScale, setLocationBiasScale, hints, setHintValue}) {
+    const hintStr = hints.map(hint => (<p>{`${hint.properties.name}`}</p>)) || '';
     return (
-        <React.Fragment>
+        <div >
+            {hintStr}
             <label htmlFor="mapText">Recherche: </label>
             <input 
                 id="mapText" 
                 type="text"
-                onChange={(e) => updateResults(e.target.value)}/>
-        </React.Fragment>
+                onKeyUp={(e) => { 
+                    if(e.key === 'Enter'){
+                        setValue(e.target.value);
+                    } else {
+                        setHintValue(e.target.value);
+                    } 
+                }}/>
+            <label htmlFor="useZoom">Utiliser le zoom </label>
+            <input 
+                id="useZoom" 
+                type="checkbox"
+                checked={useZoom}
+                onChange={(e) => { 
+                    setUseZoom(!useZoom);
+                }}/>
+            <input 
+                id="location_bias_scale" 
+                type="range" 
+                min="0" max="1" 
+                value={locationBiasScale} 
+                onChange={(e) => {
+                    setLocationBiasScale(e.target.value);
+                }}
+                step="0.05"/>
+        </div>
     );
 }
 
