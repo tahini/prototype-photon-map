@@ -13,8 +13,8 @@ const provider = new OpenStreetMapProvider();
 const defaultPosition = [45.460672, -73.57277];
 
 // search
-const queryOsm = async (value, { lat, lng }, zoom, locationBias) => {
-  const response = await fetch(`http://localhost:2322/api?q=${value}&fuzziness=1&lon=${lng}&lat=${lat}${zoom > 0 ? `&zoom=${zoom}` : ''}&location_bias_scale=${locationBias}`, {
+const queryOsm = async (value, { lat, lng }, zoom, locationBias, fuzziness = 1) => {
+  const response = await fetch(`http://localhost:2322/api?q=${value}&fuzziness=${fuzziness}&lon=${lng}&lat=${lat}&osm_tag=!highway${zoom > 0 ? `&zoom=${zoom}` : ''}&location_bias_scale=${locationBias}`, {
       mode: 'cors',
       headers: {
         'Accept': 'application/json',
@@ -40,7 +40,7 @@ function OsmMapFind() {
   const [locationBiasScale, setLocationBiasScale] = useState(0.2);
 
   React.useEffect(async () => {
-    const results = await queryOsm(value, position, useZoom ? zoom : -1, locationBiasScale);
+    const results = await queryOsm(value, position, useZoom ? zoom : -1, locationBiasScale, 0);
     console.log(results);
     setResults(results);
   }, [value, locationBiasScale, useZoom, position, zoom]);
@@ -75,6 +75,7 @@ function OsmMapFind() {
           setLocationBiasScale={setLocationBiasScale}
           setHintValue={setHintValue}
           hints={hints}
+          value={value}
         />
         <MapContainer 
           center={defaultPosition} 

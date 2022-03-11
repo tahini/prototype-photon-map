@@ -2,9 +2,14 @@ import React from 'react';
 import { Properties } from './tagUtils';
 
 
-function OsmMapInputSearch({setValue, useZoom, setUseZoom, locationBiasScale, setLocationBiasScale, hints, setHintValue}) {
-    const hintStr = hints.map(hint => (
-        <div>
+function OsmMapInputSearch({setValue, value, useZoom, setUseZoom, locationBiasScale, setLocationBiasScale, hints, setHintValue}) {
+    const hintStr = hints.map((hint, index) => (
+        <div
+            key={`${hint.properties.osm_id}_${index}`}
+            onClick={(e) => {
+                setValue(`${hint.properties.name ? hint.properties.name : ''} ${hint.properties.housenumber ? hint.properties.housenumber : ''} ${hint.properties.street ? hint.properties.street : ''} ${hint.properties.city ? hint.properties.city : ''}`);
+            }}
+        >
             <Properties properties={hint.properties}/>
         </div>)
     );
@@ -21,7 +26,9 @@ function OsmMapInputSearch({setValue, useZoom, setUseZoom, locationBiasScale, se
                     } else {
                         setHintValue(e.target.value);
                     } 
-                }}/>
+                }}
+                key={`input${value}`}
+                defaultValue={value}/>
             <label htmlFor="useZoom">Utiliser le zoom </label>
             <input 
                 id="useZoom" 
