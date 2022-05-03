@@ -2,12 +2,13 @@ import React from 'react';
 import { Properties } from './tagUtils';
 
 
-function OsmMapInputSearch({setValue, value, useZoom, setUseZoom, locationBiasScale, setLocationBiasScale, hints, setHintValue}) {
+function OsmMapInputSearch({setValue, value, useZoom, setUseZoom, id, setId, locationBiasScale, setLocationBiasScale, hints, setResults}) {
+    const [ currentQuery, setCurrentQuery ] = React.useState(value);
     const hintStr = hints.map((hint, index) => (
         <div
             key={`${hint.properties.osm_id}_${index}`}
             onClick={(e) => {
-                setValue(`${hint.properties.name ? hint.properties.name : ''} ${hint.properties.housenumber ? hint.properties.housenumber : ''} ${hint.properties.street ? hint.properties.street : ''} ${hint.properties.city ? hint.properties.city : ''}`);
+                setResults([hint]);
             }}
         >
             <Properties properties={hint.properties}/>
@@ -21,14 +22,22 @@ function OsmMapInputSearch({setValue, value, useZoom, setUseZoom, locationBiasSc
                 id="mapText" 
                 type="text"
                 onKeyUp={(e) => { 
-                    if(e.key === 'Enter'){
+                    if (e.key === 'Enter'){
                         setValue(e.target.value);
-                    } else {
-                        setHintValue(e.target.value);
-                    } 
+                    }
+                    setCurrentQuery(e.target.value);
                 }}
                 key={`input${value}`}
                 defaultValue={value}/>
+            <input
+                id="Query"
+                type="button"
+                title="Submit"
+                onClick={(e) => { 
+                    setValue(currentQuery);
+                    setId(++id);
+                }}
+            />
             <label htmlFor="useZoom">Utiliser le zoom </label>
             <input 
                 id="useZoom" 

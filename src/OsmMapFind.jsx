@@ -1,20 +1,18 @@
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import React, { useState } from 'react';
-import { OpenStreetMapProvider } from 'leaflet-geosearch';
 import OsmMapInputSearch from './OsmMapInputSearch';
 import { Properties } from './tagUtils';
 
-// setup
-const provider = new OpenStreetMapProvider();
-
-// search
-//const results = await provider.search({ query: input.value });
+const PHOTON_URL = 'https://photon.transition.city';
+// const PHOTON_URL = 'http://localhost:2322';
 
 const defaultPosition = [45.460672, -73.57277];
 
+let queryId = 0;
+
 // search
 const queryOsm = async (value, { lat, lng }, zoom, locationBias, fuzziness = 1) => {
-  const response = await fetch(`http://localhost:2322/api?q=${value}&fuzziness=${fuzziness}&lon=${lng}&lat=${lat}&osm_tag=!highway${zoom > 0 ? `&zoom=${zoom}` : ''}&location_bias_scale=${locationBias}`, {
+  const response = await fetch(`${PHOTON_URL}/api?q=${value}&fuzziness=${fuzziness}&lon=${lng}&lat=${lat}&debug=1&osm_tag=!highway${zoom > 0 ? `&zoom=${Math.min(zoom, 16)}` : ''}&location_bias_scale=${locationBias}`, {
       mode: 'cors',
       headers: {
         'Accept': 'application/json',
@@ -31,35 +29,36 @@ const queryOsm = async (value, { lat, lng }, zoom, locationBias, fuzziness = 1) 
 
 function OsmMapFind() {
   const [results, setResults] = useState([]);
-  const [hints, setHints] = useState([]);
   const [position, setPosition] = useState({ lat:defaultPosition[0], lng: defaultPosition[1] });
   const [zoom, setZoom] = useState(13);
   const [value, setValue] = useState("");
-  const [hintValue, setHintValue] = useState("");
   const [useZoom, setUseZoom] = useState(true);
   const [locationBiasScale, setLocationBiasScale] = useState(0.2);
+  const [id, setId] = useState(1);
 
   React.useEffect(async () => {
-    const results = await queryOsm(value, position, useZoom ? zoom : -1, locationBiasScale, 0);
+    const localQueryId = ++queryId;
+    const results = await queryOsm(value, position, useZoom ? zoom : -1, locationBiasScale);
+    if (localQueryId !== queryId) {
+      return;
+    }
     console.log(results);
     setResults(results);
-  }, [value, locationBiasScale, useZoom, position, zoom]);
-
-  React.useEffect(async () => {
-    const results = await queryOsm(hintValue, position, useZoom ? zoom : -1, locationBiasScale);
-    console.log(results);
-    setHints(results);
-  }, [hintValue, locationBiasScale, useZoom, position, zoom]);
+  }, [value, locationBiasScale, useZoom, id]);
 
   function MapStateWatcher() {
+    let zooming = false;
     const map = useMapEvents({
       zoomend(e) {
-        console.log("zoomed");
+          zooming = true;
+          // console.log("zoomed");
           setZoom(map.getZoom());
       },
       moveend(e) {
-        console.log("moved");
-          setPosition(map.getCenter());
+          if (!zooming) {
+            setPosition(map.getCenter());
+          }
+          zooming = false;
       }
     });
     return null;
@@ -73,9 +72,11 @@ function OsmMapFind() {
           setUseZoom={setUseZoom}
           locationBiasScale={locationBiasScale}
           setLocationBiasScale={setLocationBiasScale}
-          setHintValue={setHintValue}
-          hints={hints}
           value={value}
+          hints={results}
+          id = {id}
+          setId = {setId}
+          setResults={setResults}
         />
         <MapContainer 
           center={defaultPosition} 
